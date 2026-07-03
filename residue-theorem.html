@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teorema dos Resíduos — explorador de contorno</title>
+<style>
+  :root{
+    --bg: #f7f6f3;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --text-primary: #23201c;
+    --text-secondary: #6b6559;
+    --text-muted: #a39c8e;
+    --text-accent: #185fa5;
+    --text-success: #0f6e56;
+    --text-danger: #993c1d;
+    --border: #e4ddd0;
+    --border-strong: #cfc6b4;
+    --border-stronger: #a39c8e;
+    --bg-accent: #378add;
+    --radius: 10px;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 760px;
+    margin: 24px auto;
+    padding: 0 16px 40px;
+    line-height:1.5;
+  }
+  h1{ font-size:20px; margin-bottom:4px; }
+  .subtitle{ color:var(--text-secondary); font-size:13px; margin-bottom:20px; }
+  svg{ display:block; }
+  select, button{
+    font-family:inherit;
+    font-size:14px;
+    padding:6px 12px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--surface-1);
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+  button:hover{ background:var(--border); }
+  .th{ font-size:14px; font-weight:600; fill:var(--text-primary); }
+  .ts{ font-size:11px; fill:var(--text-secondary); }
+  .leader{ stroke:var(--border-strong); stroke-width:1; stroke-dasharray:2 2; fill:none; }
+  .c-blue{ fill:#DCEBFB; stroke:#378ADD; }
+  .c-teal{ fill:#DAF1EC; stroke:#0F6E56; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  a.backlink{ display:inline-block; margin-bottom:16px; font-size:13px; color:var(--text-accent); text-decoration:none; }
+  a.backlink:hover{ text-decoration:underline; }
+</style>
+
+</head>
+<body>
+<h1>Explorador do Teorema dos Resíduos</h1>
+<div class="subtitle">Funções de Variáveis Complexas — Física Matemática A (IFSC-USP)</div>
+
+<h2 class="sr-only">Explorador do teorema dos resíduos aplicado à função conhecida f(z) = 1 sobre (z elevado a 4 menos 1), com quatro polos simples nas raízes quárticas da unidade. Arraste um contorno circular e veja o valor da integral atualizado ao vivo.</h2>
+<div style="text-align:center; font-size:16px; margin-bottom:8px;">f(z) = 1 / (z⁴ − 1)</div>
+<div style="font-size:12px; color:var(--text-secondary); text-align:center; margin-bottom:4px;">polos nas raízes quárticas da unidade — arraste o contorno (centro) ou a alça na borda</div>
+<svg id="plane" width="100%" viewBox="0 0 680 380" style="touch-action:none;">
+  <line x1="40" y1="190" x2="640" y2="190" stroke="var(--border-strong)" stroke-width="0.5"/>
+  <line x1="340" y1="20" x2="340" y2="360" stroke="var(--border-strong)" stroke-width="0.5"/>
+  <text class="ts" x="628" y="184">Re</text>
+  <text class="ts" x="346" y="30">Im</text>
+
+  <circle id="contour" cx="340" cy="190" r="100" fill="var(--bg-accent)" fill-opacity="0.35" stroke="var(--text-accent)" stroke-width="1.5" style="cursor:grab;"/>
+  <circle id="handle" r="7" fill="var(--text-accent)" stroke="var(--surface-2)" stroke-width="1.5" style="cursor:ew-resize;"/>
+
+  <g id="pole1"><circle r="6" fill="none" stroke-width="1.5"/><line stroke-width="1.5"/><line stroke-width="1.5"/><text class="ts"></text></g>
+  <g id="pole2"><circle r="6" fill="none" stroke-width="1.5"/><line stroke-width="1.5"/><line stroke-width="1.5"/><text class="ts"></text></g>
+  <g id="pole3"><circle r="6" fill="none" stroke-width="1.5"/><line stroke-width="1.5"/><line stroke-width="1.5"/><text class="ts"></text></g>
+  <g id="pole4"><circle r="6" fill="none" stroke-width="1.5"/><line stroke-width="1.5"/><line stroke-width="1.5"/><text class="ts"></text></g>
+</svg>
+
+<div style="display:flex; gap:12px; justify-content:center; margin-top:12px; flex-wrap:wrap;">
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:150px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">polos dentro do contorno</div>
+    <div id="out-poles" style="font-size:16px; font-weight:500;">nenhum</div>
+  </div>
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:210px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">∮ f(z) dz = 2πi · Σ Res</div>
+    <div id="out-integral" style="font-size:18px; font-weight:500;">0</div>
+  </div>
+</div>
+<div id="note" style="font-size:13px; color:var(--text-secondary); text-align:center; margin-top:8px; min-height:18px;"></div>
+
+<script>
+(function(){
+  const cx0=340, cy0=190, scale=90;
+  const contour=document.getElementById('contour');
+  const handle=document.getElementById('handle');
+  const plane=document.getElementById('plane');
+  const outPoles=document.getElementById('out-poles');
+  const outIntegral=document.getElementById('out-integral');
+  const note=document.getElementById('note');
+
+  const poles = [
+    {id:'pole1', x:1,  y:0,  resR:0.25,  resI:0,     label:'z=1',  resLabel:'Res = 1/4'},
+    {id:'pole2', x:-1, y:0,  resR:-0.25, resI:0,     label:'z=-1', resLabel:'Res = -1/4'},
+    {id:'pole3', x:0,  y:1,  resR:0,     resI:0.25,  label:'z=i',  resLabel:'Res = i/4'},
+    {id:'pole4', x:0,  y:-1, resR:0,     resI:-0.25, label:'z=-i', resLabel:'Res = -i/4'}
+  ];
+
+  function toPx(x,y){ return [cx0+x*scale, cy0-y*scale]; }
+
+  const labelOffsets = {pole1:[12,-10], pole2:[-58,-10], pole3:[12,-10], pole4:[12,18]};
+
+  poles.forEach(p=>{
+    const [px,py]=toPx(p.x,p.y);
+    const g=document.getElementById(p.id);
+    const circ=g.querySelector('circle');
+    circ.setAttribute('cx',px); circ.setAttribute('cy',py);
+    const lines=g.querySelectorAll('line');
+    lines[0].setAttribute('x1',px-4); lines[0].setAttribute('y1',py-4);
+    lines[0].setAttribute('x2',px+4); lines[0].setAttribute('y2',py+4);
+    lines[1].setAttribute('x1',px+4); lines[1].setAttribute('y1',py-4);
+    lines[1].setAttribute('x2',px-4); lines[1].setAttribute('y2',py+4);
+    const txt=g.querySelector('text');
+    const off = labelOffsets[p.id];
+    txt.setAttribute('x', px+off[0]);
+    txt.setAttribute('y', py+off[1]);
+    txt.textContent = p.label + ', ' + p.resLabel;
+    p.px=px; p.py=py;
+  });
+
+  let ccx=cx0, ccy=cy0, r=100;
+
+  function fmtComplex(re, im){
+    re = Math.round(re*1000)/1000;
+    im = Math.round(im*1000)/1000;
+    if (re===0 && im===0) return '0';
+    let s='';
+    if (re!==0) s += re;
+    if (im!==0){
+      if (s!=='' ) s += (im>0?' + ':' - ') + Math.abs(im).toFixed(3) + 'i';
+      else s += im.toFixed(3) + 'i';
+    }
+    return s;
+  }
+
+  function render(){
+    contour.setAttribute('cx',ccx); contour.setAttribute('cy',ccy); contour.setAttribute('r',r);
+    handle.setAttribute('cx', ccx+r); handle.setAttribute('cy', ccy);
+
+    let sumR=0, sumI=0;
+    let insideLabels=[];
+    poles.forEach(p=>{
+      const d=Math.hypot(p.px-ccx, p.py-ccy);
+      const inside = d < r;
+      const circ=document.getElementById(p.id).querySelector('circle');
+      const lines=document.getElementById(p.id).querySelectorAll('line');
+      const txt=document.getElementById(p.id).querySelector('text');
+      const color = inside ? '#993C1D' : 'var(--text-muted)';
+      circ.setAttribute('stroke', color);
+      lines[0].setAttribute('stroke', color);
+      lines[1].setAttribute('stroke', color);
+      txt.setAttribute('fill', color);
+      if (inside){
+        sumR += p.resR; sumI += p.resI;
+        insideLabels.push(p.label);
+      }
+    });
+
+    outPoles.textContent = insideLabels.length ? insideLabels.join(', ') : 'nenhum';
+
+    const intR = -2*Math.PI*sumI;
+    const intI = 2*Math.PI*sumR;
+    outIntegral.textContent = fmtComplex(intR, intI);
+
+    if (insideLabels.length===0){
+      note.textContent = 'f é analítica dentro do contorno — integral é sempre zero (Teorema de Cauchy)';
+      note.style.color = 'var(--text-secondary)';
+    } else if (insideLabels.length===4){
+      note.textContent = 'contorno engole todos os polos — soma dos resíduos = 0 (simetria das raízes da unidade)';
+      note.style.color = 'var(--text-secondary)';
+    } else {
+      note.textContent = '';
+    }
+  }
+
+  let dragMode=null;
+  function svgPoint(e){
+    const pt=plane.createSVGPoint();
+    const t=e.touches?e.touches[0]:e;
+    pt.x=t.clientX; pt.y=t.clientY;
+    return pt.matrixTransform(plane.getScreenCTM().inverse());
+  }
+
+  contour.addEventListener('pointerdown',(e)=>{ dragMode='move'; e.preventDefault(); });
+  handle.addEventListener('pointerdown',(e)=>{ dragMode='resize'; e.stopPropagation(); e.preventDefault(); });
+  window.addEventListener('pointermove',(e)=>{
+    if (!dragMode) return;
+    e.preventDefault();
+    const p=svgPoint(e);
+    if (dragMode==='move'){
+      ccx = Math.max(40, Math.min(640, p.x));
+      ccy = Math.max(20, Math.min(360, p.y));
+    } else if (dragMode==='resize'){
+      r = Math.max(20, Math.min(280, Math.hypot(p.x-ccx, p.y-ccy)));
+    }
+    render();
+  });
+  window.addEventListener('pointerup',()=>dragMode=null);
+
+  render();
+})();
+</script>
+</body>
+</html>
