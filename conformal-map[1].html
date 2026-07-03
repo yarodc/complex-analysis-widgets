@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapeamento conforme e Cauchy-Riemann</title>
+<style>
+  :root{
+    --bg: #f7f6f3;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --text-primary: #23201c;
+    --text-secondary: #6b6559;
+    --text-muted: #a39c8e;
+    --text-accent: #185fa5;
+    --text-success: #0f6e56;
+    --text-danger: #993c1d;
+    --border: #e4ddd0;
+    --border-strong: #cfc6b4;
+    --border-stronger: #a39c8e;
+    --bg-accent: #378add;
+    --radius: 10px;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 760px;
+    margin: 24px auto;
+    padding: 0 16px 40px;
+    line-height:1.5;
+  }
+  h1{ font-size:20px; margin-bottom:4px; }
+  .subtitle{ color:var(--text-secondary); font-size:13px; margin-bottom:20px; }
+  svg{ display:block; }
+  select, button{
+    font-family:inherit;
+    font-size:14px;
+    padding:6px 12px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--surface-1);
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+  button:hover{ background:var(--border); }
+  .th{ font-size:14px; font-weight:600; fill:var(--text-primary); }
+  .ts{ font-size:11px; fill:var(--text-secondary); }
+  .leader{ stroke:var(--border-strong); stroke-width:1; stroke-dasharray:2 2; fill:none; }
+  .c-blue{ fill:#DCEBFB; stroke:#378ADD; }
+  .c-teal{ fill:#DAF1EC; stroke:#0F6E56; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  a.backlink{ display:inline-block; margin-bottom:16px; font-size:13px; color:var(--text-accent); text-decoration:none; }
+  a.backlink:hover{ text-decoration:underline; }
+</style>
+
+</head>
+<body>
+<h1>Explorador de transformações conformes</h1>
+<div class="subtitle">Funções de Variáveis Complexas — Física Matemática A (IFSC-USP)</div>
+
+<h2 class="sr-only">Explorador de transformações conformes: mostra como uma grade cartesiana se distorce sob funções analíticas como z ao quadrado, exponencial de z, 1 sobre z e seno de z, preservando ângulos localmente entre curvas que se cruzam, ilustrando as condições de Cauchy-Riemann.</h2>
+<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:12px;">
+  <select id="fn-select" style="min-width:180px;">
+    <option value="sq">f(z) = z²</option>
+    <option value="exp">f(z) = eᶻ</option>
+    <option value="inv">f(z) = 1/z</option>
+    <option value="sin">f(z) = sen(z)</option>
+  </select>
+</div>
+
+<div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
+  <div style="flex:1; min-width:280px; max-width:320px;">
+    <div style="font-size:12px; color:var(--text-secondary); text-align:center; margin-bottom:4px;">plano z (grade original, arraste o ponto)</div>
+    <svg id="zsvg" width="100%" viewBox="0 0 300 300" style="touch-action:none;">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      </defs>
+      <g id="zgrid"></g>
+      <line id="zvec1" stroke="#378ADD" stroke-width="2" marker-end="url(#arrow)"/>
+      <line id="zvec2" stroke="#D85A30" stroke-width="2" marker-end="url(#arrow)"/>
+      <circle id="zdot" r="7" fill="var(--text-primary)" stroke="var(--surface-2)" stroke-width="1.5" style="cursor:grab;"/>
+    </svg>
+  </div>
+  <div style="flex:1; min-width:280px; max-width:320px;">
+    <div style="font-size:12px; color:var(--text-secondary); text-align:center; margin-bottom:4px;">plano w = f(z) (grade transformada)</div>
+    <svg id="wsvg" width="100%" viewBox="0 0 300 300">
+      <g id="wgrid"></g>
+      <line id="wvec1" stroke="#378ADD" stroke-width="2" marker-end="url(#arrow)"/>
+      <line id="wvec2" stroke="#D85A30" stroke-width="2" marker-end="url(#arrow)"/>
+      <circle id="wdot" r="7" fill="var(--text-primary)" stroke="var(--surface-2)" stroke-width="1.5"/>
+    </svg>
+  </div>
+</div>
+
+<div style="display:flex; gap:12px; justify-content:center; margin-top:12px; flex-wrap:wrap;">
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:150px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">ângulo entre as curvas em z</div>
+    <div id="out-angz" style="font-size:18px; font-weight:500;">90°</div>
+  </div>
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:150px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">ângulo entre as curvas em w</div>
+    <div id="out-angw" style="font-size:18px; font-weight:500;">90°</div>
+  </div>
+</div>
+<div id="note" style="font-size:13px; color:var(--text-secondary); text-align:center; margin-top:8px; min-height:18px;"></div>
+
+<script>
+(function(){
+  const cx=150, cy=150, scale=45;
+  const zgrid=document.getElementById('zgrid');
+  const wgrid=document.getElementById('wgrid');
+  const zdot=document.getElementById('zdot');
+  const wdot=document.getElementById('wdot');
+  const zv1=document.getElementById('zvec1'), zv2=document.getElementById('zvec2');
+  const wv1=document.getElementById('wvec1'), wv2=document.getElementById('wvec2');
+  const outAngZ=document.getElementById('out-angz'), outAngW=document.getElementById('out-angw');
+  const note=document.getElementById('note');
+  const select=document.getElementById('fn-select');
+  const zsvg=document.getElementById('zsvg');
+
+  let px=1.0, py=0.6;
+  let fnKey='sq';
+
+  function f(x,y){
+    if (fnKey==='sq'){
+      return [x*x-y*y, 2*x*y];
+    } else if (fnKey==='exp'){
+      const ex=Math.exp(x);
+      return [ex*Math.cos(y), ex*Math.sin(y)];
+    } else if (fnKey==='inv'){
+      const d=x*x+y*y || 1e-6;
+      return [x/d, -y/d];
+    } else {
+      return [Math.sin(x)*Math.cosh(y), Math.cos(x)*Math.sinh(y)];
+    }
+  }
+
+  function wScaleFor(key){
+    if (key==='sq') return 22;
+    if (key==='exp') return 40;
+    if (key==='inv') return 130;
+    return 45;
+  }
+
+  function toZpx(x,y){ return [cx+x*scale, cy-y*scale]; }
+  function toWpx(u,v,ws){ return [cx+u*ws, cy-v*ws]; }
+
+  function buildGrids(){
+    zgrid.innerHTML='';
+    wgrid.innerHTML='';
+    const ws=wScaleFor(fnKey);
+    const range = fnKey==='inv' ? 2.6 : 3.2;
+    const step=0.5;
+    for (let gx=-range; gx<=range+0.001; gx+=step){
+      let dz='', dw='';
+      for (let gy=-range; gy<=range+0.001; gy+=0.08){
+        const [zx,zy]=toZpx(gx,gy);
+        dz += (dz===''?'M':'L') + zx.toFixed(1)+' '+zy.toFixed(1)+' ';
+        const [u,v]=f(gx,gy);
+        const [wx,wy]=toWpx(u,v,ws);
+        dw += (dw===''?'M':'L') + wx.toFixed(1)+' '+wy.toFixed(1)+' ';
+      }
+      const isAxis = Math.abs(gx) < 0.01;
+      addPath(zgrid, dz, isAxis);
+      addPath(wgrid, dw, isAxis);
+    }
+    for (let gy=-range; gy<=range+0.001; gy+=step){
+      let dz='', dw='';
+      for (let gx=-range; gx<=range+0.001; gx+=0.08){
+        const [zx,zy]=toZpx(gx,gy);
+        dz += (dz===''?'M':'L') + zx.toFixed(1)+' '+zy.toFixed(1)+' ';
+        const [u,v]=f(gx,gy);
+        const [wx,wy]=toWpx(u,v,ws);
+        dw += (dw===''?'M':'L') + wx.toFixed(1)+' '+wy.toFixed(1)+' ';
+      }
+      const isAxis = Math.abs(gy) < 0.01;
+      addPath(zgrid, dz, isAxis);
+      addPath(wgrid, dw, isAxis);
+    }
+  }
+
+  function addPath(container, d, isAxis){
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', d);
+    p.setAttribute('fill','none');
+    p.setAttribute('stroke', isAxis ? 'var(--border-strong)' : 'var(--border)');
+    p.setAttribute('stroke-width', isAxis ? '1' : '0.5');
+    container.appendChild(p);
+  }
+
+  function jacobianAngle(x,y){
+    const h=0.001;
+    const [u0,v0]=f(x,y);
+    const [u1,v1]=f(x+h,y);
+    const [u2,v2]=f(x,y+h);
+    const dux=(u1-u0)/h, dvx=(v1-v0)/h;
+    const duy=(u2-u0)/h, dvy=(v2-v0)/h;
+    return {dux,dvx,duy,dvy};
+  }
+
+  function render(){
+    buildGrids();
+    const ws=wScaleFor(fnKey);
+    const [zx,zy]=toZpx(px,py);
+    zdot.setAttribute('cx',zx); zdot.setAttribute('cy',zy);
+    const [u,v]=f(px,py);
+    const [wx,wy]=toWpx(u,v,ws);
+    wdot.setAttribute('cx',wx); wdot.setAttribute('cy',wy);
+
+    const vecLen=28;
+    zv1.setAttribute('x1',zx); zv1.setAttribute('y1',zy);
+    zv1.setAttribute('x2',zx+vecLen); zv1.setAttribute('y2',zy);
+    zv2.setAttribute('x1',zx); zv2.setAttribute('y1',zy);
+    zv2.setAttribute('x2',zx); zv2.setAttribute('y2',zy-vecLen);
+
+    const {dux,dvx,duy,dvy}=jacobianAngle(px,py);
+    const wvecLen = 28;
+    function norm(a,b){ const m=Math.hypot(a,b)||1; return [a/m*wvecLen, b/m*wvecLen]; }
+    const [w1x,w1y]=norm(dux,-dvx);
+    const [w2x,w2y]=norm(duy,-dvy);
+    wv1.setAttribute('x1',wx); wv1.setAttribute('y1',wy);
+    wv1.setAttribute('x2',wx+w1x); wv1.setAttribute('y2',wy+w1y);
+    wv2.setAttribute('x1',wx); wv2.setAttribute('y1',wy);
+    wv2.setAttribute('x2',wx+w2x); wv2.setAttribute('y2',wy+w2y);
+
+    const angW = Math.abs(Math.atan2(w1x*w2y-w1y*w2x, w1x*w2x+w1y*w2y) * 180/Math.PI);
+    outAngZ.textContent='90°';
+    outAngW.textContent=Math.round(angW)+'°';
+
+    if (Math.abs(angW-90) < 1.5){
+      note.textContent='ângulo preservado — a função é conforme neste ponto';
+      note.style.color='var(--text-success)';
+    } else {
+      note.textContent='';
+    }
+  }
+
+  let dragging=false;
+  function svgPoint(e,svg){
+    const pt=svg.createSVGPoint();
+    const t=e.touches?e.touches[0]:e;
+    pt.x=t.clientX; pt.y=t.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  zdot.addEventListener('pointerdown',(e)=>{dragging=true; e.preventDefault();});
+  window.addEventListener('pointermove',(e)=>{
+    if(!dragging) return;
+    e.preventDefault();
+    const p=svgPoint(e,zsvg);
+    px=(p.x-cx)/scale; py=-(p.y-cy)/scale;
+    if (fnKey==='inv' && Math.hypot(px,py)<0.3) return;
+    render();
+  });
+  window.addEventListener('pointerup',()=>dragging=false);
+  zsvg.addEventListener('pointerdown',(e)=>{
+    const p=svgPoint(e,zsvg);
+    px=(p.x-cx)/scale; py=-(p.y-cy)/scale;
+    if (fnKey==='inv' && Math.hypot(px,py)<0.3) return;
+    dragging=true;
+    render();
+  });
+
+  select.addEventListener('change',()=>{
+    fnKey=select.value;
+    if (fnKey==='inv' && Math.hypot(px,py)<0.3){ px=1; py=0.6; }
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

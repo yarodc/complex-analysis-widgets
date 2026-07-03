@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corte de ramificação de raiz(z)</title>
+<style>
+  :root{
+    --bg: #f7f6f3;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --text-primary: #23201c;
+    --text-secondary: #6b6559;
+    --text-muted: #a39c8e;
+    --text-accent: #185fa5;
+    --text-success: #0f6e56;
+    --text-danger: #993c1d;
+    --border: #e4ddd0;
+    --border-strong: #cfc6b4;
+    --border-stronger: #a39c8e;
+    --bg-accent: #378add;
+    --radius: 10px;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 760px;
+    margin: 24px auto;
+    padding: 0 16px 40px;
+    line-height:1.5;
+  }
+  h1{ font-size:20px; margin-bottom:4px; }
+  .subtitle{ color:var(--text-secondary); font-size:13px; margin-bottom:20px; }
+  svg{ display:block; }
+  select, button{
+    font-family:inherit;
+    font-size:14px;
+    padding:6px 12px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--surface-1);
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+  button:hover{ background:var(--border); }
+  .th{ font-size:14px; font-weight:600; fill:var(--text-primary); }
+  .ts{ font-size:11px; fill:var(--text-secondary); }
+  .leader{ stroke:var(--border-strong); stroke-width:1; stroke-dasharray:2 2; fill:none; }
+  .c-blue{ fill:#DCEBFB; stroke:#378ADD; }
+  .c-teal{ fill:#DAF1EC; stroke:#0F6E56; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  a.backlink{ display:inline-block; margin-bottom:16px; font-size:13px; color:var(--text-accent); text-decoration:none; }
+  a.backlink:hover{ text-decoration:underline; }
+</style>
+
+</head>
+<body>
+<h1>Explorador do corte de ramificação de √z</h1>
+<div class="subtitle">Funções de Variáveis Complexas — Física Matemática A (IFSC-USP)</div>
+
+<h2 class="sr-only">Explorador interativo do corte de ramificação de raiz quadrada complexa: arraste um ponto no plano z e observe como o argumento acumula e como w = raiz de z muda de valor ao dar uma volta completa em torno da origem.</h2>
+<div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-bottom:12px;">
+  <div style="flex:1; min-width:280px; max-width:320px;">
+    <div style="font-size:12px; color:var(--text-secondary); text-align:center; margin-bottom:4px;">plano z (arraste o ponto)</div>
+    <svg id="zplane" width="100%" viewBox="0 0 300 300" style="touch-action:none; cursor:grab;">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      </defs>
+      <line x1="20" y1="150" x2="280" y2="150" stroke="var(--border-strong)" stroke-width="0.5"/>
+      <line x1="150" y1="20" x2="150" y2="280" stroke="var(--border-strong)" stroke-width="0.5"/>
+      <text class="ts" x="270" y="144">Re</text>
+      <text class="ts" x="156" y="30">Im</text>
+      <line id="branchcut" x1="20" y1="150" x2="150" y2="150" stroke="#D85A30" stroke-width="3" stroke-dasharray="5 4" opacity="0.7"/>
+      <text class="ts" x="30" y="166" fill="#993C1D">corte (θ = π)</text>
+      <path id="trail" fill="none" stroke="#378ADD" stroke-width="1" opacity="0.4"/>
+      <circle id="zpoint" cx="220" cy="150" r="8" fill="#185FA5" stroke="var(--surface-2)" stroke-width="1.5" style="cursor:grab;"/>
+    </svg>
+  </div>
+  <div style="flex:1; min-width:280px; max-width:320px;">
+    <div style="font-size:12px; color:var(--text-secondary); text-align:center; margin-bottom:4px;">plano w = raiz(z)</div>
+    <svg id="wplane" width="100%" viewBox="0 0 300 300">
+      <line x1="20" y1="150" x2="280" y2="150" stroke="var(--border-strong)" stroke-width="0.5"/>
+      <line x1="150" y1="20" x2="150" y2="280" stroke="var(--border-strong)" stroke-width="0.5"/>
+      <text class="ts" x="270" y="144">Re</text>
+      <text class="ts" x="156" y="30">Im</text>
+      <line id="wray" x1="150" y1="150" x2="150" y2="150" stroke="var(--text-muted)" stroke-width="0.5"/>
+      <circle id="wpoint" cx="150" cy="150" r="8" fill="#0F6E56" stroke="var(--surface-2)" stroke-width="1.5"/>
+      <circle id="wpoint-neg" cx="150" cy="150" r="6" fill="#993C1D" opacity="0.5"/>
+    </svg>
+  </div>
+</div>
+
+<div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:12px;">
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:110px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">r</div>
+    <div id="out-r" style="font-size:18px; font-weight:500;">2.00</div>
+  </div>
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:130px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">θ acumulado</div>
+    <div id="out-theta" style="font-size:18px; font-weight:500;">0°</div>
+  </div>
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:110px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">voltas</div>
+    <div id="out-winds" style="font-size:18px; font-weight:500;">0</div>
+  </div>
+  <div style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; min-width:150px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:12px; color:var(--text-secondary);">w = raiz(z)</div>
+    <div id="out-w" style="font-size:18px; font-weight:500;">1.41</div>
+  </div>
+</div>
+
+<div id="note" style="font-size:13px; color:var(--text-secondary); text-align:center; min-height:20px; margin-bottom:4px;"></div>
+
+<div style="display:flex; gap:12px; justify-content:center;">
+  <button id="reset-btn" onclick="resetPoint()">Reiniciar ponto</button>
+</div>
+
+<script>
+(function(){
+  const cx = 150, cy = 150, scale = 55;
+  const zpoint = document.getElementById('zpoint');
+  const zplane = document.getElementById('zplane');
+  const wpoint = document.getElementById('wpoint');
+  const wpointNeg = document.getElementById('wpoint-neg');
+  const wray = document.getElementById('wray');
+  const trail = document.getElementById('trail');
+  const outR = document.getElementById('out-r');
+  const outTheta = document.getElementById('out-theta');
+  const outWinds = document.getElementById('out-winds');
+  const outW = document.getElementById('out-w');
+  const note = document.getElementById('note');
+
+  let x = 2, y = 0;
+  let cumTheta = Math.atan2(y, x);
+  let lastPrincipal = cumTheta;
+  let trailPts = [];
+  let dragging = false;
+
+  function svgPointFromEvent(e, svg){
+    const pt = svg.createSVGPoint();
+    const touch = e.touches ? e.touches[0] : e;
+    pt.x = touch.clientX; pt.y = touch.clientY;
+    const ctm = svg.getScreenCTM().inverse();
+    const p = pt.matrixTransform(ctm);
+    return p;
+  }
+
+  function updateFromXY(nx, ny){
+    x = nx; y = ny;
+    const r = Math.hypot(x, y);
+    const p = Math.atan2(y, x);
+    let delta = p - lastPrincipal;
+    if (delta > Math.PI) delta -= 2*Math.PI;
+    if (delta < -Math.PI) delta += 2*Math.PI;
+    cumTheta += delta;
+    lastPrincipal = p;
+    render(r);
+  }
+
+  function render(r){
+    const px = cx + x*scale, py = cy - y*scale;
+    zpoint.setAttribute('cx', px);
+    zpoint.setAttribute('cy', py);
+
+    trailPts.push([px,py]);
+    if (trailPts.length > 400) trailPts.shift();
+    trail.setAttribute('d', 'M' + trailPts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L'));
+
+    const wr = Math.sqrt(r);
+    const wtheta = cumTheta/2;
+    const wx = wr*Math.cos(wtheta), wy = wr*Math.sin(wtheta);
+    const wscale = 70;
+    const wpx = cx + wx*wscale, wpy = cy - wy*wscale;
+    wpoint.setAttribute('cx', wpx);
+    wpoint.setAttribute('cy', wpy);
+    wray.setAttribute('x2', wpx);
+    wray.setAttribute('y2', wpy);
+
+    const negtheta = wtheta + Math.PI;
+    const nwx = wr*Math.cos(negtheta), nwy = wr*Math.sin(negtheta);
+    wpointNeg.setAttribute('cx', cx + nwx*wscale);
+    wpointNeg.setAttribute('cy', cy - nwy*wscale);
+
+    outR.textContent = r.toFixed(2);
+    const degTheta = (cumTheta*180/Math.PI).toFixed(0);
+    outTheta.textContent = degTheta + '°';
+    const winds = cumTheta/(2*Math.PI);
+    outWinds.textContent = winds.toFixed(2);
+    outW.textContent = wx.toFixed(2) + (wy>=0?' + ':' - ') + Math.abs(wy).toFixed(2) + 'i';
+
+    const roundedWinds = Math.round(winds);
+    if (Math.abs(winds - roundedWinds) < 0.03 && roundedWinds % 2 !== 0){
+      note.textContent = 'mesma posição de z, mas w mudou de sinal — ' + roundedWinds + ' volta(s) ímpar em torno da origem';
+      note.style.color = 'var(--text-danger)';
+    } else if (Math.abs(winds - roundedWinds) < 0.03 && roundedWinds !== 0){
+      note.textContent = roundedWinds + ' volta(s) completas — de volta ao mesmo ramo';
+      note.style.color = 'var(--text-secondary)';
+    } else {
+      note.textContent = '';
+    }
+  }
+
+  function pointerMove(e){
+    if (!dragging) return;
+    e.preventDefault();
+    const p = svgPointFromEvent(e, zplane);
+    const nx = (p.x - cx)/scale, ny = -(p.y - cy)/scale;
+    if (Math.hypot(nx,ny) < 0.15) return;
+    updateFromXY(nx, ny);
+  }
+
+  zpoint.addEventListener('pointerdown', (e)=>{ dragging = true; zpoint.style.cursor='grabbing'; e.preventDefault(); });
+  window.addEventListener('pointermove', pointerMove);
+  window.addEventListener('pointerup', ()=>{ dragging=false; zpoint.style.cursor='grab'; });
+  zplane.addEventListener('pointerdown', (e)=>{
+    const p = svgPointFromEvent(e, zplane);
+    const nx = (p.x - cx)/scale, ny = -(p.y - cy)/scale;
+    if (Math.hypot(nx,ny) < 0.15) return;
+    dragging = true;
+    updateFromXY(nx, ny);
+  });
+
+  window.resetPoint = function(){
+    x = 2; y = 0;
+    cumTheta = 0; lastPrincipal = 0;
+    trailPts = [];
+    trail.setAttribute('d','');
+    note.textContent = '';
+    render(2);
+  };
+
+  render(2);
+})();
+</script>
+</body>
+</html>

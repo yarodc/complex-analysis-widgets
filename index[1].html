@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualizações — Funções de Variáveis Complexas</title>
+<style>
+  :root{
+    --bg: #f7f6f3;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --text-primary: #23201c;
+    --text-secondary: #6b6559;
+    --text-muted: #a39c8e;
+    --text-accent: #185fa5;
+    --text-success: #0f6e56;
+    --text-danger: #993c1d;
+    --border: #e4ddd0;
+    --border-strong: #cfc6b4;
+    --border-stronger: #a39c8e;
+    --bg-accent: #378add;
+    --radius: 10px;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 760px;
+    margin: 24px auto;
+    padding: 0 16px 40px;
+    line-height:1.5;
+  }
+  h1{ font-size:20px; margin-bottom:4px; }
+  .subtitle{ color:var(--text-secondary); font-size:13px; margin-bottom:20px; }
+  svg{ display:block; }
+  select, button{
+    font-family:inherit;
+    font-size:14px;
+    padding:6px 12px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--surface-1);
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+  button:hover{ background:var(--border); }
+  .th{ font-size:14px; font-weight:600; fill:var(--text-primary); }
+  .ts{ font-size:11px; fill:var(--text-secondary); }
+  .leader{ stroke:var(--border-strong); stroke-width:1; stroke-dasharray:2 2; fill:none; }
+  .c-blue{ fill:#DCEBFB; stroke:#378ADD; }
+  .c-teal{ fill:#DAF1EC; stroke:#0F6E56; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+  a.backlink{ display:inline-block; margin-bottom:16px; font-size:13px; color:var(--text-accent); text-decoration:none; }
+  a.backlink:hover{ text-decoration:underline; }
+</style>
+
+</head>
+<body>
+<h1>Visualizações interativas</h1>
+<div class="subtitle">Funções de Variáveis Complexas — Física Matemática A (IFSC-USP)</div>
+
+<ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:12px;">
+  <li style="border:1px solid var(--border); border-radius:var(--radius); padding:16px;">
+    <a class="backlink" href="conformal-map.html" style="font-size:16px; font-weight:600;">1. Mapeamento conforme e Cauchy-Riemann →</a>
+    <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Como uma grade cartesiana se distorce sob z², eᶻ, 1/z e sen(z), preservando ângulos localmente.</div>
+  </li>
+  <li style="border:1px solid var(--border); border-radius:var(--radius); padding:16px;">
+    <a class="backlink" href="taylor-laurent.html" style="font-size:16px; font-weight:600;">2. Taylor vs. Laurent — regiões de convergência →</a>
+    <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Por que o disco de Taylor para no polo mais próximo, e como Laurent contorna essa barreira com um anel.</div>
+  </li>
+  <li style="border:1px solid var(--border); border-radius:var(--radius); padding:16px;">
+    <a class="backlink" href="residue-theorem.html" style="font-size:16px; font-weight:600;">3. Teorema dos Resíduos — explorador de contorno →</a>
+    <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Arraste um contorno pelo plano e veja o valor de ∮f(z)dz saltar conforme engole cada polo.</div>
+  </li>
+  <li style="border:1px solid var(--border); border-radius:var(--radius); padding:16px;">
+    <a class="backlink" href="branch-cut.html" style="font-size:16px; font-weight:600;">4. Corte de ramificação de √z →</a>
+    <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Acompanhe o argumento acumulado ao dar voltas em torno da origem e veja a multivaloração de raiz(z).</div>
+  </li>
+</ul>
+</body>
+</html>
